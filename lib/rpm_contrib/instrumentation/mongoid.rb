@@ -27,6 +27,6 @@ if defined?(::Mongoid) && !NewRelic::Control.instance['disable_mongodb']
         super
       end
     end
-    ::Mongoid::Document.extend(RPMContrib::Instrumentation::Mongoid)
+    ::Mongoid::Collection.extend(RPMContrib::Instrumentation::Mongoid)
   end
 end
