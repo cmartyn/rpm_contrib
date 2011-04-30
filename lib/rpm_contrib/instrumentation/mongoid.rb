@@ -1,7 +1,7 @@
 if defined?(::Mongoid) && !NewRelic::Control.instance['disable_mongodb']
 
   module Mongoid #:nodoc:
-    module Document
+    module Collection
 
       #adding call to super
       class << self
@@ -20,28 +20,9 @@ if defined?(::Mongoid) && !NewRelic::Control.instance['disable_mongodb']
     module Mongoid
       def included(model)
         model.class_eval do
-          class << self
-            add_method_tracer :create, 'Database/#{self.name}/create'
-            add_method_tracer :create!, 'Database/#{self.name}/create!'
-            add_method_tracer :delete_all, 'Database/#{self.name}/delete_all'
-            add_method_tracer :destroy_all, 'Database/#{self.name}/destroy_all'
-            add_method_tracer :all, 'Database/#{self.name}/all'
-            add_method_tracer :find, 'Database/#{self.name}/find'
-            add_method_tracer :first, 'Database/#{self.name}/first'
-            add_method_tracer :last, 'Database/#{self.name}/last'
-            add_method_tracer :find_or_create_by, 'Database/#{self.name}/find_or_create_by'
-            add_method_tracer :find_or_initialize_by, 'Database/#{self.name}/find_or_initialize_by'
-            add_method_tracer :min, 'Database/#{self.name}/min'
-            add_method_tracer :max, 'Database/#{self.name}/max'
-            add_method_tracer :sum, 'Database/#{self.name}/sum'
+          (%w(find find_one map_reduce) + Collections::Operations::PROXIED - ['<<']).uniq.each do |method|
+            add_method_tracer method, "MongoDB/\#{@klass}##{method}"
           end
-
-          add_method_tracer :update_attributes, 'Database/#{self.class.name}/update_attributes'
-          add_method_tracer :update_attributes!, 'Database/#{self.class.name}/update_attributes!'
-          add_method_tracer :save, 'Database/#{self.class.name}/save'
-          add_method_tracer :save!, 'Database/#{self.class.name}/save!'
-          add_method_tracer :delete, 'Database/#{self.class.name}/delete'
-          add_method_tracer :destroy, 'Database/#{self.class.name}/destroy'
         end
         super
       end
